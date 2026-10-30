@@ -266,7 +266,6 @@ e.g. "Senior Frontend Engineer at Google requires proficiency in React, TypeScri
           )}
         </form>
         {/* Recent Reports */}
-        {console.log(reports)}
         {reports.length > 0 && (
           <section className="mt-10">
             <h2 className="mb-4 text-lg font-semibold">Recent Reports</h2>

@@ -1,6 +1,6 @@
 import { useContext } from "react"
 import { InterviewContext } from "../interview.context"
-import { getAllInterviewReport,generateInterviewReport,getInterviewReport } from "../services/interview.api";
+import { getAllInterviewReport,generateInterviewReport,getInterviewReport,generateResumePdf } from "../services/interview.api";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 
@@ -47,6 +47,21 @@ export const useInterview = () =>{
             setLoading(false);
         }
     }
+    const getResumePdf = async (interviewId) => {
+        try {
+            const response = await generateResumePdf( interviewId )
+            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
+            const link = document.createElement("a")
+            link.href = url
+            link.setAttribute("download", `resume_${interviewId}.pdf`)
+            document.body.appendChild(link)
+            link.click()
+        }
+        catch (error) {
+            console.log(error);
+            throw error;
+        }
+    }
 
 
   useEffect(()=>{
@@ -57,5 +72,5 @@ export const useInterview = () =>{
     }
   },[interviewId])
 
-    return {loading,setLoading,report,setReport,reports,setReports,generateReport,getAllReports,getReportbyId}
+    return {loading,setLoading,report,setReport,reports,setReports,generateReport,getAllReports,getReportbyId, getResumePdf}
 }

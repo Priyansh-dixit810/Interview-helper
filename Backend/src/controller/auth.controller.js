@@ -94,7 +94,6 @@ export const logoutUserController = async (req,res) => {
  */
 
 export const getMeController = async (req,res) =>{
-    console.log(req)
     const user = await userModel.findById(req.user.id);
     console.log(user);
     res.status(200).json({

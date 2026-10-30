@@ -1,6 +1,6 @@
 import express from "express";
 import authuser from "../middleware/auth.middleware.js";
-import { allInterviewReport, generateInterviewReportController, interviewReport } from "../controller/interview.controller.js";
+import { allInterviewReport, generateInterviewReportController, generateResumePDFController, interviewReport } from "../controller/interview.controller.js";
 import { upload } from "../middleware/file.middleware.js";
 
 const interviewRoute = express.Router();
@@ -13,4 +13,5 @@ interviewRoute.post("/",authuser,upload.single('resume'),generateInterviewReport
 interviewRoute.get("/",authuser,allInterviewReport)
 interviewRoute.get("/report/:interviewId",authuser,interviewReport)
 
+interviewRoute.post("/resume/pdf/:interviewId",authuser,generateResumePDFController)
 export default interviewRoute; 

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Code2,
@@ -7,6 +6,8 @@ import {
   ChevronDown,
   ChevronUp,
   CircleCheck,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { useInterview } from "../hooks/useInterview";
 import { useParams } from "react-router-dom";
@@ -15,18 +16,16 @@ import { useEffect } from "react";
 function Interview() {
   const [activeSection, setActiveSection] = useState("technical");
   const [expandedQuestion, setExpandedQuestion] = useState(0);
-  const {report,getReportbyId,loading} = useInterview();
-  const {interviewId} = useParams();
+  const { report, getReportbyId, loading, getResumePdf } = useInterview();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const { interviewId } = useParams();
 
-  useEffect(()=>{
-    const getReport = async ()=>{
+  useEffect(() => {
+    const getReport = async () => {
       await getReportbyId(interviewId);
-    }
+    };
     getReport();
-  },[interviewId])
-
-
-
+  }, [interviewId]);
 
   const sections = [
     { id: "technical", label: "Technical Questions", icon: Code2 },
@@ -45,9 +44,7 @@ function Interview() {
     [];
 
   const questions =
-    activeSection === "technical"
-      ? technicalQuestions
-      : behavioralQuestions;
+    activeSection === "technical" ? technicalQuestions : behavioralQuestions;
 
   const matchScore = report?.matchScore ?? 0;
 
@@ -62,43 +59,69 @@ function Interview() {
     }
   };
 
-  if(loading || !report){
-    return(
+  if (loading || !report) {
+    return (
       <main className="min-h-screen bg-[#151b24] text-gray-100">
         <h1>Loading your report</h1>
-        </main>
-    )
+      </main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-[#151b24] text-gray-100">
       <div className="grid min-h-screen grid-cols-1 md:grid-cols-[235px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_340px]">
-
         {/* LEFT SIDEBAR */}
-        <aside className="border-b border-white/10 p-5 md:border-r md:border-b-0">
-          <p className="mb-6 text-xs font-bold uppercase tracking-widest text-gray-500">
-            Sections
-          </p>
+        <aside className="border-b border-white/10 p-5 md:border-r md:border-b-0 flex flex-col justify-between">
+          <div>
+            <p className="mb-6 text-xs font-bold uppercase tracking-widest text-gray-500">
+              Sections
+            </p>
 
-          <nav className="flex gap-2 overflow-x-auto md:flex-col">
-            {sections.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setActiveSection(id);
-                  setExpandedQuestion(0);
-                }}
-                className={`flex shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition ${
-                  activeSection === id
-                    ? "bg-pink-500/15 text-pink-400"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                <Icon size={19} />
-                {label}
-              </button>
-            ))}
-          </nav>
+            <nav className="flex gap-2 overflow-x-auto md:flex-col">
+              {sections.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setActiveSection(id);
+                    setExpandedQuestion(0);
+                  }}
+                  className={`flex shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium transition ${
+                    activeSection === id
+                      ? "bg-pink-500/15 text-pink-400"
+                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <Icon size={19} />
+                  {label}
+                </button>
+              ))}
+            </nav>
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                setIsGeneratingPdf(true);
+                await getResumePdf(interviewId);
+              } catch (error) {
+                console.error(error);
+              } finally {
+                setIsGeneratingPdf(false);
+              }
+            }}
+            className="inline-flex cursor-pointer items-center gap-3 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 transition"
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                Download Resume
+              </>
+            )}
+          </button>
         </aside>
 
         {/* MAIN CONTENT */}
@@ -285,7 +308,7 @@ function Interview() {
               <div
                 key={`${gap.skill}-${index}`}
                 className={`rounded-lg border px-3 py-2.5 text-sm font-semibold ${getSeverityClass(
-                  gap.severity
+                  gap.severity,
                 )}`}
               >
                 {gap.skill}
@@ -293,9 +316,7 @@ function Interview() {
             ))}
 
             {skillGaps.length === 0 && (
-              <p className="text-sm text-gray-500">
-                No skill gaps available.
-              </p>
+              <p className="text-sm text-gray-500">No skill gaps available.</p>
             )}
           </div>
         </aside>
