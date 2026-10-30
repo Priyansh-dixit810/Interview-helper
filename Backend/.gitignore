@@ -1,0 +1,15 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+node_modules
+
+# Dependencies
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Logs
+*.log
