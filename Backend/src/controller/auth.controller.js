@@ -9,6 +9,21 @@ import jwt from 'jsonwebtoken';
 import userModel from "../models/user.model.js";
 import tokenBlacklistModel from "../models/blacklist.model.js";
 
+const isProduction = process.env.PRODUCTION === "true" || process.env.NODE_ENV === "production";
+const tokenCookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/"
+};
+const clearTokenCookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/"
+};
+
 export const registerUserController = async (req,res) =>{
     try{
 
@@ -30,7 +45,7 @@ export const registerUserController = async (req,res) =>{
         const user = await userModel.create({username,email,password: hashPassword});
 
         const token = jwt.sign({id: user._id , username: user.username}, process.env.JWT_SECRET, {expiresIn: "1d"})
-        res.cookie("token", token);
+        res.cookie("token", token, tokenCookieOptions);
 
 
         res.status(201).json({message: "User registered succesfully", token})
@@ -59,7 +74,7 @@ export const loginUserController = async (req,res) => {
     }
 
     const token = jwt.sign({id: loginuser._id , username: loginuser.username}, process.env.JWT_SECRET, {expiresIn: "1d"})
-    res.cookie("token", token);
+    res.cookie("token", token, tokenCookieOptions);
     res.status(200).json({message: "Log In succesful",user: {
         id: loginuser._id,
         username: loginuser.username,
@@ -80,7 +95,7 @@ export const logoutUserController = async (req,res) => {
         await tokenBlacklistModel.create({token})
     }
 
-    res.clearCookie("token")
+    res.clearCookie("token", clearTokenCookieOptions)
 
     res.status(200).json({
         message: "User logged out successfully"
