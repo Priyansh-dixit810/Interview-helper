@@ -153,17 +153,24 @@ export const generateResumePDF = async ({
 };
 
 const generatePDFfromHTML = async (htmlContent) => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-
-  await page.setContent(htmlContent, {
-    waitUntil: "networkidle2",
+  const browser = await puppeteer.launch({
+    // Required when Chromium runs in Render's unprivileged Linux container.
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    ...(process.env.PUPPETEER_EXECUTABLE_PATH
+      ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
+      : {}),
   });
 
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-  });
-  await browser.close();
+  try {
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, {
+      waitUntil: "networkidle2",
+    });
 
-  return pdfBuffer;
+    return await page.pdf({
+      format: "A4",
+    });
+  } finally {
+    await browser.close();
+  }
 };
